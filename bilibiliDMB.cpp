@@ -448,5 +448,8 @@ void BilibiliDMB::_clear()
     ui->dmBoard->clear();
     ui->giftBoard->clear();
     ui->entryLabel->clear();
+    DMs.clear();
+    GIFTs.clear();
+    ENTRYs.clear();
 }
 
