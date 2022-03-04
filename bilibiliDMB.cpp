@@ -50,18 +50,6 @@ BilibiliDMB::~BilibiliDMB()
     delete ui;
 }
 
-
-// Private functions
-void BilibiliDMB::sendAuth()
-{
-    //socket->write(packet(7));
-}
-
-void BilibiliDMB::sendHeartbeat()
-{
-    //socket->write(packet(2));
-}
-
 QByteArray BilibiliDMB::packet(int op)
 {
     QJsonObject json;
@@ -190,9 +178,8 @@ void BilibiliDMB::A(QJsonObject &json)
     QString currentCMD = json.value("cmd").toString();
     qDebug() << "[A] cmd = " << currentCMD;
 
-    QString dmMessage;
-    QString giftMessage;
-    QString entryMessage;
+    QString message;
+    QString textColor;
 
     switch (cmd.value(currentCMD))
     {
@@ -221,11 +208,12 @@ void BilibiliDMB::A(QJsonObject &json)
                            json.value("info").toArray().at(1).toString()
                        });
         }
+        textColor = DMs.last().color == 16777215 ? "000000" : QString::number(DMs.last().color, 16);
+        message += "<font color=\"gray\">" + QDateTime::fromSecsSinceEpoch(DMs.last().timestamp).toString("HH:mm:ss") + "</font> "
+                + DMs.last().uname + " : "
+                + "<font color=\"#" + textColor + "\">" + DMs.last().content + "</font>";
 
-        dmMessage += QDateTime::fromSecsSinceEpoch(DMs.last().timestamp).toString("HH:mm:ss") + " "
-                + "<font color=\"#4169E1\">" + DMs.last().uname + "</font>" + " : "
-                + DMs.last().content;
-        ui->dmBoard->append(dmMessage);
+        ui->dmBoard->append(message);
 
         break;
 
@@ -244,11 +232,11 @@ void BilibiliDMB::A(QJsonObject &json)
                          json.value("data").toObject().value("giftName").toString()
                      });
 
-        giftMessage += QDateTime::fromSecsSinceEpoch(GIFTs.last().timestamp).toString("HH:mm:ss") + " "
+        message += "<font color=\"gray\">" + QDateTime::fromSecsSinceEpoch(GIFTs.last().timestamp).toString("HH:mm:ss") + "</font> "
                 + "<font color=\"#4169E1\">" + GIFTs.last().uname + "</font>" + tr(" 送出了 ")
                 + GIFTs.last().giftName
                 + " * " + QString::number(GIFTs.last().num);
-        ui->giftBoard->append(giftMessage);
+        ui->giftBoard->append(message);
         break;
 
     case comboGift:
@@ -264,8 +252,8 @@ void BilibiliDMB::A(QJsonObject &json)
                           json.value("data").toObject().value("fans_medal").toObject().value("metal_name").toString(),
                           json.value("data").toObject().value("uname").toString()
                       });
-        entryMessage += ENTRYs.last().uname + tr(" 进入了直播间");
-        ui->entryLabel->setText(entryMessage);
+        message += ENTRYs.last().uname + tr(" 进入了直播间");
+        ui->entryLabel->setText(message);
         break;
 
     default:

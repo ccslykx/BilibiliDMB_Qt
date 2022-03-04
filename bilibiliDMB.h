@@ -14,8 +14,6 @@ class BilibiliDMB: public QMainWindow {
     Q_OBJECT
 
 private:
-    void sendAuth();
-    void sendHeartbeat();
     QByteArray packet(int);
     void unpack(QByteArray &);
     void A(QJsonObject &);
@@ -23,7 +21,6 @@ private:
     void setToken();
 
 private slots:
-    //QByteArray receive();
     void onConnected();
     void onReceive(QByteArray);
 
@@ -32,7 +29,6 @@ public:
     ~BilibiliDMB();
 
 public slots:
-
     void _connect();
     void _disconnect();
     void _saveHistory();
@@ -42,12 +38,12 @@ private:
     Ui::BilibiliDMB *ui;
 
     qint64 realRoomID = 0;
-    QString address = "broadcastlv.chat.bilibili.com";
-    quint16 wss_port = 443; // ws:2245 wss:443
-    QString token = "token";
+    //QString address = "broadcastlv.chat.bilibili.com";
+    //quint16 wss_port = 443; // ws:2244 wss:443
 
     QString apiGetInfoByRoom = "https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=";
     QString apiGetDanmuInfo = "https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=";
+    QString token = "";
 
     QWebSocket *socket;
     QTimer *heartbeatTimer;
