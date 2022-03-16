@@ -4,7 +4,6 @@
 
 #include <QString>
 #include <QDateTime>
-#include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -13,7 +12,6 @@
 #include <QNetworkReply>
 #include <QEventLoop>
 #include <QFile>
-#include <QtZlib/zlib.h>
 #include <QTimer>
 
 #include "bilibiliDMB.h"
@@ -29,7 +27,6 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
     ui->setupUi(this);
     ui->disconnectButton->setEnabled(false);
 
-
     QObject::connect(ui->connectButton, &QPushButton::clicked, this, &BilibiliDMB::_connect);
     QObject::connect(ui->disconnectButton, &QPushButton::clicked, this, &BilibiliDMB::_disconnect);
     QObject::connect(ui->saveHistoryButton, &QPushButton::clicked, this, &BilibiliDMB::_saveHistory);
@@ -42,12 +39,14 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
     cmd["INTERACT_WORD"] = entry;
 
     // for test
-    ui->roomid->setText("8765806");
+    ui->roomid->setText("23165114");
+    qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已启动");
 }
 
 BilibiliDMB::~BilibiliDMB()
 {
     delete ui;
+    qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已退出");
 }
 
 QByteArray BilibiliDMB::packet(int op)
@@ -94,7 +93,7 @@ QByteArray BilibiliDMB::packet(int op)
 
 void BilibiliDMB::onReceive(QByteArray data)
 {
-    qDebug() << "Received: " + QString::number(data.size()) + " bytes";
+    qDebug() << tr("[%1] %2 ").arg("提示", "接收到") + QString::number(data.size()) + tr(" %3").arg("字节数据");
 
     quint16 version = data.mid(6, 2).toHex().toUShort(); // mid()从中间截取一段数据
 
@@ -252,7 +251,7 @@ void BilibiliDMB::A(QJsonObject &json)
                           json.value("data").toObject().value("fans_medal").toObject().value("metal_name").toString(),
                           json.value("data").toObject().value("uname").toString()
                       });
-        message += ENTRYs.last().uname + tr(" 进入了直播间");
+        message += ENTRYs.last().uname + tr(" <font color = \"gray\">进入了直播间</font>");
         ui->entryLabel->setText(message);
         break;
 
@@ -414,21 +413,7 @@ void BilibiliDMB::_disconnect()
 
 void BilibiliDMB::_saveHistory()
 {
-//    QFile textFile = QFile("D:/text.txt");
-//    if (!textFile.open(QIODevice::WriteOnly))
-//        return;
-//    QTextStream textOut(&textFile);
-//    textOut << packet(7);
-//    textFile.close();
-//    qDebug() << "TextSteam Done";
 
-//    QFile binFile = QFile("D:/bin.txt");
-//    if (!binFile.open(QIODevice::WriteOnly))
-//        return;
-//    QDataStream binOut(&binFile);
-//    binOut << packet(7);
-//    binFile.close();
-//    qDebug() << "DataSteam Done";
 }
 
 void BilibiliDMB::_clear()
