@@ -97,6 +97,4 @@ private:
     QList<ENTRY> ENTRYs;
 };
 
-
-
 #endif // BILIBILIDMB_H
