@@ -54,9 +54,7 @@
     </property>
     <property name="font">
      <font>
-      <family>宋体</family>
       <pointsize>16</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
       <stylestrategy>PreferAntialias</stylestrategy>
      </font>
@@ -124,9 +122,7 @@
     </property>
     <property name="font">
      <font>
-      <family>宋体</family>
       <pointsize>16</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
       <stylestrategy>PreferAntialias</stylestrategy>
      </font>
@@ -149,9 +145,7 @@
     </property>
     <property name="font">
      <font>
-      <family>宋体</family>
       <pointsize>14</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
       <stylestrategy>PreferAntialias</stylestrategy>
      </font>
@@ -187,12 +181,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBilibili">
     <property name="title">
-     <string>Bilibili弹幕板</string>
+     <string>菜单</string>
     </property>
     <addaction name="actionSetting"/>
    </widget>
@@ -200,10 +194,19 @@
   </widget>
   <action name="actionSetting">
    <property name="text">
-    <string>Setting</string>
+    <string>设置</string>
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>roomid</tabstop>
+  <tabstop>connectButton</tabstop>
+  <tabstop>disconnectButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>saveHistoryButton</tabstop>
+  <tabstop>giftBoard</tabstop>
+  <tabstop>dmBoard</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

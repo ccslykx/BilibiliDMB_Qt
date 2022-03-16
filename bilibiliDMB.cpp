@@ -1,17 +1,17 @@
 //设置字体颜色宏定义
 //https://blog.csdn.net/duapple/article/details/120101489
+#define DEBUG true
 
-
-#include <QString>
 #include <QDateTime>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
 #include <QEventLoop>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QString>
 #include <QTimer>
 
 #include "bilibiliDMB.h"
@@ -40,13 +40,13 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
 
     // for test
     ui->roomid->setText("23165114");
-    qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已启动");
+    if (DEBUG) qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已启动");
 }
 
 BilibiliDMB::~BilibiliDMB()
 {
     delete ui;
-    qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已退出");
+    if (DEBUG) qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已退出");
 }
 
 QByteArray BilibiliDMB::packet(int op)
@@ -86,14 +86,14 @@ QByteArray BilibiliDMB::packet(int op)
            << body; //这里会自动在body（json）前加入4个字节，表示json的大小，而这里不需要
     package.remove(16, 4); //故删除之
 
-    qDebug() << "packet(" << op << ")";
+    if (DEBUG) qDebug() << "packet(" << op << ")";
 
     return package;
 }
 
 void BilibiliDMB::onReceive(QByteArray data)
 {
-    qDebug() << tr("[%1] %2 ").arg("提示", "接收到") + QString::number(data.size()) + tr(" %3").arg("字节数据");
+    if (DEBUG) qDebug() << tr("[%1] %2 ").arg("提示", "接收到") + QString::number(data.size()) + tr(" %3").arg("字节数据");
 
     quint16 version = data.mid(6, 2).toHex().toUShort(); // mid()从中间截取一段数据
 
@@ -108,33 +108,49 @@ void BilibiliDMB::onReceive(QByteArray data)
 
     switch (version) {
     case 0: // JSON
+        if (DEBUG) qDebug() << "case 0 JSON";
         jsonDocument = QJsonDocument::fromJson(data);
         if (!jsonDocument.isObject())
         {
-            qDebug() << "[unpack] !jsonDocument.isObject()";
+            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
             return;
         }
         json = jsonDocument.object();
         A(json);
-        qDebug() << "case 0 JSON";
         break;
 
     case 1: // 人气
-        qDebug() << "case 1 人气";
+        if (DEBUG) qDebug() << "case 1 人气";
+        jsonDocument = QJsonDocument::fromJson(data);
+        if (!jsonDocument.isObject())
+        {
+            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
+            return;
+        }
+        json = jsonDocument.object();
+        if (DEBUG) qDebug() << json;
         break;
 
     case 2: // zlib JSON
-        qDebug() << "case 2 zlib JSON";
+        if (DEBUG) qDebug() << "case 2 zlib JSON";
         unCompressedData = qUncompress(data);
         unpack(unCompressedData);
         break;
 
     case 3: // brotli JSON
-        qDebug() << "case 3 brotli JSON";
+        if (DEBUG) qDebug() << "case 3 brotli JSON";
         break;
 
     default:
-        qDebug() << "case default";
+        if (DEBUG) qDebug() << "case default";
+        jsonDocument = QJsonDocument::fromJson(data);
+        if (!jsonDocument.isObject())
+        {
+            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
+            return;
+        }
+        json = jsonDocument.object();
+        if (DEBUG) qDebug() << json;
         break;
     }
 
@@ -153,7 +169,7 @@ void BilibiliDMB::unpack(QByteArray &data)
         QJsonDocument jsonDocument = QJsonDocument::fromJson(cur);
         if (!jsonDocument.isObject())
         {
-            qDebug() << "[unpack] !jsonDocument.isObject()";
+            if (DEBUG) qDebug() << "[unpack] !jsonDocument.isObject()";
             return;
         }
         QJsonObject json = jsonDocument.object();
@@ -171,11 +187,11 @@ void BilibiliDMB::A(QJsonObject &json)
 {
     if (!json.contains("cmd"))
     {
-        qDebug() << "[A] !json.contains(\"cmd\")";
+        if (DEBUG) qDebug() << "[A] !json.contains(\"cmd\")";
         return;
     }
     QString currentCMD = json.value("cmd").toString();
-    qDebug() << "[A] cmd = " << currentCMD;
+    if (DEBUG) qDebug() << "[A] cmd = " << currentCMD;
 
     QString message;
     QString textColor;
@@ -296,34 +312,34 @@ void BilibiliDMB::setRoomID()
     QJsonDocument roomInfo = QJsonDocument::fromJson(reply->readAll());
     if (!roomInfo.isObject())
     {
-        qDebug() << "!roomInfo.isObject()    @setRoomID";
+        if (DEBUG) qDebug() << "!roomInfo.isObject()    @setRoomID";
         return;
     }
 
     QJsonObject _obj = roomInfo.object();
     if (!_obj.contains("data"))
     {
-        qDebug() << "!_obj.contains(\"data\")    @setRoomID";
+        if (DEBUG) qDebug() << "!_obj.contains(\"data\")    @setRoomID";
         return;
     }
 
     QJsonObject _data = _obj.value("data").toObject();
     if (!_data.contains("room_info"))
     {
-        qDebug() << "!_data.contains(\"room_info\")    @setRoomID";
+        if (DEBUG) qDebug() << "!_data.contains(\"room_info\")    @setRoomID";
         return;
     }
 
     QJsonObject _room_info = _data.value("room_info").toObject();
     if (!_room_info.contains("room_id"))
     {
-        qDebug() << "!_room_info.contains(\"room_id\")    @setRoomID";
+        if (DEBUG) qDebug() << "!_room_info.contains(\"room_id\")    @setRoomID";
         return;
     }
 
     this->realRoomID = _room_info.value("room_id").toInteger();
 
-    qDebug() << "realRoomID = " + QString::number(realRoomID) + "    @setRoomID";
+    if (DEBUG) qDebug() << "realRoomID = " + QString::number(realRoomID) + "    @setRoomID";
 }
 
 void BilibiliDMB::setToken()
@@ -342,26 +358,26 @@ void BilibiliDMB::setToken()
     QJsonDocument danmuInfo = QJsonDocument::fromJson(reply->readAll());
     if (!danmuInfo.isObject())
     {
-        qDebug() << "!danmuInfo.isObject()    @setToken";
+        if (DEBUG) qDebug() << "!danmuInfo.isObject()    @setToken";
         return;
     }
 
     QJsonObject _obj = danmuInfo.object();
     if (!_obj.contains("data"))
     {
-        qDebug() << "!_obj.contains(\"data\")    @setToken";
+        if (DEBUG) qDebug() << "!_obj.contains(\"data\")    @setToken";
         return;
     }
 
     QJsonObject _data = _obj.value("data").toObject();
     if (!_data.contains("token"))
     {
-        qDebug() << "!_data.contains(\"token\")    @setToken";
+        if (DEBUG) qDebug() << "!_data.contains(\"token\")    @setToken";
         return;
     }
 
     this->token = _data.value("token").toString();
-    qDebug() << "token = " + token + "    @setToken";
+    if (DEBUG) qDebug() << "token = " + token + "    @setToken";
 }
 
 // Public slots
@@ -369,7 +385,7 @@ void BilibiliDMB::_connect()
 {
     setRoomID();
     setToken();
-    qDebug() << "Got RealRoomID and Token.";
+    if (DEBUG) qDebug() << "Got RealRoomID and Token.";
 
     // connect
     socket = new QWebSocket();
@@ -383,7 +399,7 @@ void BilibiliDMB::_connect()
 }
 
 void BilibiliDMB::onConnected() {
-    qDebug() << "WebSocket connected";
+    if (DEBUG) qDebug() << "WebSocket connected";
     QObject::connect(this->socket, &QWebSocket::binaryMessageReceived,
             this, &BilibiliDMB::onReceive);
     socket->sendBinaryMessage(packet(7));
@@ -405,7 +421,7 @@ void BilibiliDMB::_disconnect()
     delete heartbeatTimer;
     delete socket;
 
-    qDebug() << "WebSocket disconnected";
+    if (DEBUG) qDebug() << "WebSocket disconnected";
 
     ui->connectButton->setEnabled(true);
     ui->disconnectButton->setEnabled(false);

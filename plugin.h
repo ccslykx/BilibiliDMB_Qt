@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
 #include <QEventLoop>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QTimer>
 
 void httpGET(const QString& strUrl, QString& response, int& statusCode)
