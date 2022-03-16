@@ -393,9 +393,11 @@ void BilibiliDMB::_connect()
     QNetworkRequest request;
     request.setUrl(QUrl("wss://broadcastlv.chat.bilibili.com:443/sub"));
     socket->open(request);
-
-    ui->disconnectButton->setEnabled(true);
-    ui->connectButton->setEnabled(false);
+    if (!socket) {
+        ui->disconnectButton->setEnabled(true);
+        ui->connectButton->setEnabled(false);
+        if (DEBUG) qDebug() << tr("Connected");
+    }
 }
 
 void BilibiliDMB::onConnected() {
