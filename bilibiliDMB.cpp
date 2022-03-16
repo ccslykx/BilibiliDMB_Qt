@@ -122,13 +122,8 @@ void BilibiliDMB::onReceive(QByteArray data)
     case 1: // 人气
         if (DEBUG) qDebug() << "case 1 人气";
         jsonDocument = QJsonDocument::fromJson(data);
-        if (!jsonDocument.isObject())
-        {
-            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
-            return;
-        }
-        json = jsonDocument.object();
-        if (DEBUG) qDebug() << json;
+
+        if (DEBUG) qDebug() << QString::fromUtf8(data);
         break;
 
     case 2: // zlib JSON
@@ -393,11 +388,11 @@ void BilibiliDMB::_connect()
     QNetworkRequest request;
     request.setUrl(QUrl("wss://broadcastlv.chat.bilibili.com:443/sub"));
     socket->open(request);
-    if (!socket) {
-        ui->disconnectButton->setEnabled(true);
-        ui->connectButton->setEnabled(false);
-        if (DEBUG) qDebug() << tr("Connected");
-    }
+
+    ui->disconnectButton->setEnabled(true);
+    ui->connectButton->setEnabled(false);
+    if (DEBUG) qDebug() << tr("Connected");
+
 }
 
 void BilibiliDMB::onConnected() {
