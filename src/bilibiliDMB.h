@@ -1,5 +1,4 @@
-#ifndef BILIBILIDMB_H
-#define BILIBILIDMB_H
+#pragma once
 
 #include <QMainWindow>
 #include <QString>
@@ -49,12 +48,12 @@ private:
     QTimer *heartbeatTimer;
 
     enum CMD {
-        whatever,
-        dm, //弹幕消息
-        gift, //投喂礼物
-        comboGift, //连击礼物
+        defaultCMD = 999,
+        dm = 1, //弹幕消息
+        gift = 2, //投喂礼物
+        comboGift = 3, //连击礼物
         //LIVE_INTERACTIVE_GAME
-        entry, //进入房间
+        entry = 4, //进入房间
         //case ENTRY_EFFECT //欢迎舰长进入房间
     };
 
@@ -96,5 +95,3 @@ private:
     QList<GIFT> GIFTs;
     QList<ENTRY> ENTRYs;
 };
-
-#endif // BILIBILIDMB_H

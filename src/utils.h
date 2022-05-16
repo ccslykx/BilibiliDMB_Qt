@@ -1,5 +1,23 @@
 #pragma once
 
+#ifndef VERBOSE
+    #define VERBOSE true
+#endif
+
+#ifndef SHOWCALL
+    #define SHOWCALL true
+#endif
+
+#define DEBUG(level, x)    if (VERBOSE) qDebug().noquote() << QObject::tr("[%1]").arg(level) << x;
+
+#define ERROR(X) DEBUG("ERROR", x)
+#define WARNING(x)  DEBUG("WARNING", x)
+#define INFO(x)     DEBUG("INFO", x)
+
+#if SHOWCALL
+    #define CALL(func)  DEBUG("CALL", func)
+#endif
+
 #include <QEventLoop>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -9,6 +27,8 @@
 void httpGET(const QString& strUrl, QString& response, int& statusCode)
 //没用到
 {
+    CALL("void httpGET(const QString& strUrl, QString& response, int& statusCode)");
+
     assert(!strUrl.isEmpty());
     const QUrl url = QUrl::fromUserInput(strUrl);
     assert(url.isValid());
@@ -42,6 +62,8 @@ void httpGET(const QString& strUrl, QString& response, int& statusCode)
 
 void packetByte (int start, int end, int &value, QByteArray &qByteArray)
 {
+    CALL("void packetByte (int start, int end, int &value, QByteArray &qByteArray)");
+
     if (qByteArray.size() < end + 1)
     {
         qDebug() << "Error: ";
@@ -62,6 +84,8 @@ void packetByte (int start, int end, int &value, QByteArray &qByteArray)
 
 void packetByte (int start, int end, qint16 &value, QByteArray &qByteArray)
 {
+    CALL("void packetByte (int start, int end, qint16 &value, QByteArray &qByteArray)");
+
     if (qByteArray.size() < end + 1)
     {
         qDebug() << "Error: ";
@@ -82,12 +106,15 @@ void packetByte (int start, int end, qint16 &value, QByteArray &qByteArray)
 
 void printByte (QByteArray const data, int start, int length)
 {
+    CALL("void printByte (QByteArray const data, int start, int length)");
+
     for (int i = start; i < start + length - 1; i++) {
         qDebug() << "data[" << i << "] = " << quint8(data[i]); // QT按字节（quint8)输出
     }
 }
 void printByte (QByteArray const data)
 {
+    CALL("void printByte (QByteArray const data)");
     for (int i = 0; i < data.size(); i++) {
         qDebug() << "data[" << i << "] = " << quint8(data[i]); // QT按字节（quint8)输出
     }
@@ -95,6 +122,8 @@ void printByte (QByteArray const data)
 
 void changeHeaderSize (QByteArray *data, int num, bool plus)
 {
+    CALL("void changeHeaderSize (QByteArray *data, int num, bool plus)");
+
     QByteArray lenData = data->mid(0, 4);
     quint32 len;
     QDataStream read(&lenData, QIODevice::ReadOnly);

@@ -1,6 +1,5 @@
 //设置字体颜色宏定义
 //https://blog.csdn.net/duapple/article/details/120101489
-#define DEBUG true
 
 #include <QDateTime>
 #include <QEventLoop>
@@ -15,8 +14,8 @@
 #include <QTimer>
 
 #include "bilibiliDMB.h"
+#include "utils.h"
 #include "ui_bilibiliDMB.h"
-#include "plugin.h"
 
 // Construct
 BilibiliDMB::BilibiliDMB(QWidget *parent)
@@ -24,6 +23,8 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
     , ui(new Ui::BilibiliDMB)
     //参考https://blog.csdn.net/rjc_lihui/article/details/88397009
 {
+    CALL("BilibiliDMB::BilibiliDMB(QWidget *parent)");
+
     ui->setupUi(this);
     ui->disconnectButton->setEnabled(false);
 
@@ -32,7 +33,7 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
     QObject::connect(ui->saveHistoryButton, &QPushButton::clicked, this, &BilibiliDMB::_saveHistory);
     QObject::connect(ui->clearButton, &QPushButton::clicked, this, &BilibiliDMB::_clear);
 
-    cmd["__DEFAULT__"] = whatever;
+    cmd["__DEFAULT__"] = defaultCMD;
     cmd["DANMU_MSG"] = dm;
     cmd["SEND_GIFT"] = gift;
     cmd["COMBO_SEND"] = comboGift;
@@ -40,17 +41,20 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
 
     // for test
     ui->roomid->setText("23165114");
-    if (DEBUG) qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已启动");
+    INFO(tr("%1“BilibiliDMB”%2").arg("应用程序", "已启动"));
 }
 
 BilibiliDMB::~BilibiliDMB()
 {
+    CALL("BilibiliDMB::~BilibiliDMB()");
     delete ui;
-    if (DEBUG) qDebug() << tr("[%1] %2“BilibiliDMB”%3").arg("提示", "应用程序", "已退出");
+    INFO(tr("%1“BilibiliDMB”%2").arg("应用程序", "已退出"));
 }
 
 QByteArray BilibiliDMB::packet(int op)
 {
+    CALL("QByteArray BilibiliDMB::packet(int op)");
+
     QJsonObject json;
     switch (op)
     {
@@ -86,14 +90,16 @@ QByteArray BilibiliDMB::packet(int op)
            << body; //这里会自动在body（json）前加入4个字节，表示json的大小，而这里不需要
     package.remove(16, 4); //故删除之
 
-    if (DEBUG) qDebug() << "packet(" << op << ")";
+    INFO("packet(" << op << ")");
 
     return package;
 }
 
 void BilibiliDMB::onReceive(QByteArray data)
 {
-    if (DEBUG) qDebug() << tr("[%1] %2 ").arg("提示", "接收到") + QString::number(data.size()) + tr(" %3").arg("字节数据");
+    CALL("void BilibiliDMB::onReceive(QByteArray data)");
+
+    INFO(tr("%1").arg("接收到") + QString::number(data.size()) + tr("%2").arg("字节数据"));
 
     quint16 version = data.mid(6, 2).toHex().toUShort(); // mid()从中间截取一段数据
 
@@ -108,11 +114,11 @@ void BilibiliDMB::onReceive(QByteArray data)
 
     switch (version) {
     case 0: // JSON
-        if (DEBUG) qDebug() << "case 0 JSON";
+        INFO("case 0 JSON");
         jsonDocument = QJsonDocument::fromJson(data);
         if (!jsonDocument.isObject())
         {
-            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
+            WARNING("!jsonDocument.isObject()");
             return;
         }
         json = jsonDocument.object();
@@ -120,32 +126,32 @@ void BilibiliDMB::onReceive(QByteArray data)
         break;
 
     case 1: // 人气
-        if (DEBUG) qDebug() << "case 1 人气";
+        INFO("case 1 人气");
         jsonDocument = QJsonDocument::fromJson(data);
 
-        if (DEBUG) qDebug() << QString::fromUtf8(data);
+        INFO(QString::fromUtf8(data));
         break;
 
     case 2: // zlib JSON
-        if (DEBUG) qDebug() << "case 2 zlib JSON";
+        INFO("case 2 zlib JSON");
         unCompressedData = qUncompress(data);
         unpack(unCompressedData);
         break;
 
     case 3: // brotli JSON
-        if (DEBUG) qDebug() << "case 3 brotli JSON";
+        INFO("case 3 brotli JSON");
         break;
 
     default:
-        if (DEBUG) qDebug() << "case default";
+        INFO("case default");
         jsonDocument = QJsonDocument::fromJson(data);
         if (!jsonDocument.isObject())
         {
-            if (DEBUG) qDebug() << "!jsonDocument.isObject()";
+            WARNING("!jsonDocument.isObject()");
             return;
         }
         json = jsonDocument.object();
-        if (DEBUG) qDebug() << json;
+        INFO(json);
         break;
     }
 
@@ -153,6 +159,8 @@ void BilibiliDMB::onReceive(QByteArray data)
 
 void BilibiliDMB::unpack(QByteArray &data)
 {
+    CALL("void BilibiliDMB::unpack(QByteArray &data)");
+
     QByteArray bodyLenData = data.mid(0, 4);
     quint32 bodyLen;
     QDataStream read(&bodyLenData, QIODevice::ReadOnly);
@@ -164,7 +172,7 @@ void BilibiliDMB::unpack(QByteArray &data)
         QJsonDocument jsonDocument = QJsonDocument::fromJson(cur);
         if (!jsonDocument.isObject())
         {
-            if (DEBUG) qDebug() << "[unpack] !jsonDocument.isObject()";
+            WARNING("@unpack !jsonDocument.isObject()");
             return;
         }
         QJsonObject json = jsonDocument.object();
@@ -180,13 +188,15 @@ void BilibiliDMB::unpack(QByteArray &data)
 
 void BilibiliDMB::A(QJsonObject &json)
 {
+    CALL("void BilibiliDMB::A(QJsonObject &json)");
+
     if (!json.contains("cmd"))
     {
-        if (DEBUG) qDebug() << "[A] !json.contains(\"cmd\")";
+        INFO("@A !json.contains(\"cmd\")");
         return;
     }
     QString currentCMD = json.value("cmd").toString();
-    if (DEBUG) qDebug() << "[A] cmd = " << currentCMD;
+    INFO("@A CMD = " << currentCMD);
 
     QString message;
     QString textColor;
@@ -294,6 +304,8 @@ void BilibiliDMB::preConnect()
 void BilibiliDMB::setRoomID()
 //参考https://blog.csdn.net/hellokandy/article/details/122664900
 {
+    CALL("void BilibiliDMB::setRoomID()");
+
     QNetworkAccessManager *roomInfoManager = new QNetworkAccessManager(this);
     QNetworkRequest roomInfoRequest;
     roomInfoRequest.setUrl(QUrl(apiGetInfoByRoom + ui->roomid->text()));
@@ -307,39 +319,41 @@ void BilibiliDMB::setRoomID()
     QJsonDocument roomInfo = QJsonDocument::fromJson(reply->readAll());
     if (!roomInfo.isObject())
     {
-        if (DEBUG) qDebug() << "!roomInfo.isObject()    @setRoomID";
+        WARNING("!roomInfo.isObject()    @setRoomID");
         return;
     }
 
     QJsonObject _obj = roomInfo.object();
     if (!_obj.contains("data"))
     {
-        if (DEBUG) qDebug() << "!_obj.contains(\"data\")    @setRoomID";
+        WARNING("!_obj.contains(\"data\")    @setRoomID");
         return;
     }
 
     QJsonObject _data = _obj.value("data").toObject();
     if (!_data.contains("room_info"))
     {
-        if (DEBUG) qDebug() << "!_data.contains(\"room_info\")    @setRoomID";
+        WARNING("!_data.contains(\"room_info\")    @setRoomID");
         return;
     }
 
     QJsonObject _room_info = _data.value("room_info").toObject();
     if (!_room_info.contains("room_id"))
     {
-        if (DEBUG) qDebug() << "!_room_info.contains(\"room_id\")    @setRoomID";
+        WARNING("!_room_info.contains(\"room_id\")    @setRoomID");
         return;
     }
 
     this->realRoomID = _room_info.value("room_id").toInteger();
 
-    if (DEBUG) qDebug() << "realRoomID = " + QString::number(realRoomID) + "    @setRoomID";
+    INFO("realRoomID = " + QString::number(realRoomID) + "    @setRoomID");
 }
 
 void BilibiliDMB::setToken()
 //参考https://blog.csdn.net/hellokandy/article/details/122664900
 {
+    CALL("void BilibiliDMB::setToken()");
+
     QNetworkAccessManager *danmuInfoManager = new QNetworkAccessManager(this);
     QNetworkRequest danmuInfoRequest;
     danmuInfoRequest.setUrl(QUrl(apiGetDanmuInfo + ui->roomid->text()));
@@ -353,34 +367,36 @@ void BilibiliDMB::setToken()
     QJsonDocument danmuInfo = QJsonDocument::fromJson(reply->readAll());
     if (!danmuInfo.isObject())
     {
-        if (DEBUG) qDebug() << "!danmuInfo.isObject()    @setToken";
+        WARNING("!danmuInfo.isObject()    @setToken");
         return;
     }
 
     QJsonObject _obj = danmuInfo.object();
     if (!_obj.contains("data"))
     {
-        if (DEBUG) qDebug() << "!_obj.contains(\"data\")    @setToken";
+        WARNING("!_obj.contains(\"data\")    @setToken");
         return;
     }
 
     QJsonObject _data = _obj.value("data").toObject();
     if (!_data.contains("token"))
     {
-        if (DEBUG) qDebug() << "!_data.contains(\"token\")    @setToken";
+        WARNING("!_data.contains(\"token\")    @setToken");
         return;
     }
 
     this->token = _data.value("token").toString();
-    if (DEBUG) qDebug() << "token = " + token + "    @setToken";
+    INFO("token = " + token + "    @setToken");
 }
 
 // Public slots
 void BilibiliDMB::_connect()
 {
+    CALL("void BilibiliDMB::_connect()");
+
     setRoomID();
     setToken();
-    if (DEBUG) qDebug() << "Got RealRoomID and Token.";
+    INFO(tr("%1 RealRoomID %2 Token.").arg("成功获取到", "和"));
 
     // connect
     socket = new QWebSocket();
@@ -391,12 +407,15 @@ void BilibiliDMB::_connect()
 
     ui->disconnectButton->setEnabled(true);
     ui->connectButton->setEnabled(false);
-    if (DEBUG) qDebug() << tr("Connected");
+    INFO(tr("%1").arg("连接成功"));
 
 }
 
-void BilibiliDMB::onConnected() {
-    if (DEBUG) qDebug() << "WebSocket connected";
+void BilibiliDMB::onConnected()
+{
+    CALL("void BilibiliDMB::onConnected()");
+
+    INFO(tr("WebSocket %1").arg("连接成功"));
     QObject::connect(this->socket, &QWebSocket::binaryMessageReceived,
             this, &BilibiliDMB::onReceive);
     socket->sendBinaryMessage(packet(7));
@@ -412,13 +431,15 @@ void BilibiliDMB::onConnected() {
 
 void BilibiliDMB::_disconnect()
 {
+    CALL("void BilibiliDMB::_disconnect()");
+
     if (heartbeatTimer->isActive()) heartbeatTimer->stop();
     socket->close();
 
     delete heartbeatTimer;
     delete socket;
 
-    if (DEBUG) qDebug() << "WebSocket disconnected";
+    INFO(tr("WebSocket %1").arg("断开连接"));
 
     ui->connectButton->setEnabled(true);
     ui->disconnectButton->setEnabled(false);
@@ -426,11 +447,13 @@ void BilibiliDMB::_disconnect()
 
 void BilibiliDMB::_saveHistory()
 {
-
+    CALL("void BilibiliDMB::_saveHistory()");
 }
 
 void BilibiliDMB::_clear()
 {
+    CALL("void BilibiliDMB::_clear()");
+
     ui->dmBoard->clear();
     ui->giftBoard->clear();
     ui->entryLabel->clear();
