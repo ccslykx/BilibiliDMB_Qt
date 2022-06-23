@@ -1,35 +1,17 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
-SET(CMAKE_CXX_STANDARD 17)
+cmake_minimum_required(VERSION 3.18)
+project(BilibiliDMB)
 
-PROJECT(BilibiliDMB)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 17)
 
-SET(CMAKE_AUTOUIC ON)
-SET(CMAKE_AUTOMOC ON)
-SET(CMAKE_AUTORCC ON)
+file(GLOB SOURCE "src/*.h" "src/*.cpp" "src/*.ui")
+add_executable(${PROJECT_NAME} ${SOURCE})
 
-SET(FORMS
-    src/bilibiliDMB.ui
-)
+find_package(Qt6 COMPONENTS Core Gui Widgets WebSockets REQUIRED)
 
-SET(HEADERS
-    src/bilibiliDMB.h
-    src/utils.h
-)
-
-SET(SOURCES
-    src/main.cpp
-    src/bilibiliDMB.cpp
-)
-
-ADD_EXECUTABLE(${PROJECT_NAME}
-    ${FORMS}
-    ${HEADERS}
-    ${SOURCES}
-)
-
-FIND_PACKAGE(Qt6 COMPONENTS Core Gui Widgets WebSockets REQUIRED)
-
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME} 
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets

@@ -17,6 +17,8 @@
 #include "utils.h"
 #include "ui_bilibiliDMB.h"
 
+DanmuManager* BilibiliDMB::manager = DanmuManager::instance(1, RightToLeft);
+
 // Construct
 BilibiliDMB::BilibiliDMB(QWidget *parent)
     : QMainWindow(parent)
@@ -24,14 +26,15 @@ BilibiliDMB::BilibiliDMB(QWidget *parent)
     //参考https://blog.csdn.net/rjc_lihui/article/details/88397009
 {
     CALL("BilibiliDMB::BilibiliDMB(QWidget *parent)");
+    manager->setParent(parent);
 
     ui->setupUi(this);
     ui->disconnectButton->setEnabled(false);
 
-    QObject::connect(ui->connectButton, &QPushButton::clicked, this, &BilibiliDMB::_connect);
-    QObject::connect(ui->disconnectButton, &QPushButton::clicked, this, &BilibiliDMB::_disconnect);
-    QObject::connect(ui->saveHistoryButton, &QPushButton::clicked, this, &BilibiliDMB::_saveHistory);
-    QObject::connect(ui->clearButton, &QPushButton::clicked, this, &BilibiliDMB::_clear);
+    QObject::connect(ui->connectButton, &QPushButton::clicked, this, &BilibiliDMB::connect);
+    QObject::connect(ui->disconnectButton, &QPushButton::clicked, this, &BilibiliDMB::disconnect);
+    QObject::connect(ui->saveHistoryButton, &QPushButton::clicked, this, &BilibiliDMB::saveHistory);
+    QObject::connect(ui->clearButton, &QPushButton::clicked, this, &BilibiliDMB::clear);
 
     cmd["__DEFAULT__"] = defaultCMD;
     cmd["DANMU_MSG"] = dm;
@@ -105,9 +108,9 @@ void BilibiliDMB::onReceive(QByteArray data)
 
     data.remove(4, 12); //结合下面，少个插入操作
     //参考https://blog.csdn.net/doujianyoutiao/article/details/106236207
-    changeHeaderSize(&data, 12, false);
+    changeHeaderSize(&data, 12, false); //因为上一步删除了12字节数据，所以调整Header中对应的大小
 
-    //为了switch
+    //switch中使用的变量
     QJsonDocument jsonDocument;
     QJsonObject json;
     QByteArray unCompressedData;
@@ -229,12 +232,10 @@ void BilibiliDMB::A(QJsonObject &json)
                        });
         }
         textColor = DMs.last().color == 16777215 ? "000000" : QString::number(DMs.last().color, 16);
-        message += "<font color=\"gray\">" + QDateTime::fromSecsSinceEpoch(DMs.last().timestamp).toString("HH:mm:ss") + "</font> "
-                + DMs.last().uname + " : "
-                + "<font color=\"#" + textColor + "\">" + DMs.last().content + "</font>";
-
+        message += DMs.last().uname + " : " + "<font color=\"#" + textColor + "\">" + DMs.last().content + "</font>";
+        manager->createDM(message); //先创建弹幕
+        message = "<font color=\"gray\">" + QDateTime::fromSecsSinceEpoch(DMs.last().timestamp).toString("HH:mm:ss") + "</font> " + message; //再加上时间 
         ui->dmBoard->append(message);
-
         break;
 
     case gift:
@@ -264,7 +265,6 @@ void BilibiliDMB::A(QJsonObject &json)
         break;
 
     case entry:
-        //【未完成】
         ENTRYs.append({
                           json.value("data").toObject().value("timestamp").toInteger(),
                           json.value("data").toObject().value("fans_medal").toObject().value("metal_level").toInt(),
@@ -390,9 +390,9 @@ void BilibiliDMB::setToken()
 }
 
 // Public slots
-void BilibiliDMB::_connect()
+void BilibiliDMB::connect()
 {
-    CALL("void BilibiliDMB::_connect()");
+    CALL("void BilibiliDMB::connect()");
 
     setRoomID();
     setToken();
@@ -429,9 +429,9 @@ void BilibiliDMB::onConnected()
     // end if
 }
 
-void BilibiliDMB::_disconnect()
+void BilibiliDMB::disconnect()
 {
-    CALL("void BilibiliDMB::_disconnect()");
+    CALL("void BilibiliDMB::disconnect()");
 
     if (heartbeatTimer->isActive()) heartbeatTimer->stop();
     socket->close();
@@ -445,12 +445,12 @@ void BilibiliDMB::_disconnect()
     ui->disconnectButton->setEnabled(false);
 }
 
-void BilibiliDMB::_saveHistory()
+void BilibiliDMB::saveHistory()
 {
     CALL("void BilibiliDMB::_saveHistory()");
 }
 
-void BilibiliDMB::_clear()
+void BilibiliDMB::clear()
 {
     CALL("void BilibiliDMB::_clear()");
 
