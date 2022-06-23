@@ -30,6 +30,7 @@ int DanmuManager::count()
 
 void DanmuManager::createDM(QString content)
 {
+    if (count() > 20) return; // 防止弹幕过多死机
     Danmu *dm = Danmu::create(content, m_nextOffset, this->m_parent);
     calculateOffset(dm->dmSize()); //计算下一个弹幕的位置 
 }
