@@ -24,7 +24,7 @@
 namespace DanmuCore 
 {
 
-Bilibili::Bilibili() 
+Bilibili::Bilibili(Display display) 
 {
     qDebug() << "Bilibili Constructed!";
 }
@@ -223,13 +223,20 @@ void Bilibili::parse(QJsonObject &jsonObj)
         {
             danmu.medalName = danmuInfo.at(3).toArray().at(1).toString(); // medal name
             danmu.medalLevel = danmuInfo.at(3).toArray().at(0).toInt(); // medal level
-            danmu.medalColor = 0; //danmuInfo.at(3).toArray().at(1).(), // medal color
+            danmu.medalColor = danmuInfo.at(3).toArray().at(4).toInteger(); // medal color
         }
-        qDebug() << QDateTime::fromSecsSinceEpoch(danmu.timestamp).toString("yy-MM-dd HH:mm:ss")
-                 << danmu.uname << "\t[" << danmu.medalLevel << danmu.medalName << "]:\t"
-                 << danmu.content;
+        // if (display == Display::All        || display == Display::DanmuOnly ||
+        //     display == Display::EntryDanmu || display == Display::DanmuGift  ) 
+        // {
+            qDebug() << QDateTime::fromSecsSinceEpoch(danmu.timestamp).toString("yy-MM-dd HH:mm:ss")
+                     << danmu.uname << "\t[" << danmu.medalLevel << danmu.medalName << "]:\t"
+                     << danmu.content;
+        // }
         danmuList.push_back(danmu);
         emit newDanmu(danmu);
+        emit newDanmu(QDateTime::fromSecsSinceEpoch(danmu.timestamp).toString("yy-MM-dd HH:mm:ss"), 
+                      danmu.uname, danmu.content, danmu.contentColor == 16777215 ? "#000000" : "#" + QString::number(danmu.contentColor, 16), 
+                      danmu.medalName, QString::number(danmu.medalLevel), "#" + QString::number(danmu.medalColor, 16));
     } 
     else if (cmd.contains("SEND_GIFT"))
     {
@@ -249,11 +256,19 @@ void Bilibili::parse(QJsonObject &jsonObj)
             giftData.value("medal_info").toObject().value("medal_level").toInteger(),
             giftData.value("medal_info").toObject().value("medal_color").toInteger()
         );
-        qDebug() << QDateTime::fromSecsSinceEpoch(gift.timestamp).toString("yy-MM-dd HH:mm:ss")
-                 << gift.uname << "\t[" << gift.medalLevel << gift.medalName << "]\tsend gift:"
-                 << gift.content << "*" << gift.number;
+        // if (display == Display::All       || display == Display::GiftOnly ||
+        //     display == Display::EntryGift || display == Display::DanmuGift )
+        // {
+            qDebug() << QDateTime::fromSecsSinceEpoch(gift.timestamp).toString("yy-MM-dd HH:mm:ss")
+                    << gift.uname << "\t[" << gift.medalLevel << gift.medalName << "]\tsend gift:"
+                    << gift.content << "*" << gift.number;
+        // }
         giftList.push_back(gift);
         emit newGift(gift);
+        emit newDanmu(QDateTime::fromSecsSinceEpoch(gift.timestamp).toString("yy-MM-dd HH:mm:ss"), 
+                      gift.uname, "送出了 “" + gift.content + "” * " + QString::number(gift.number), 
+                      gift.contentColor == 16777215 ? "#000000" : "#" + QString::number(gift.contentColor, 16), 
+                      gift.medalName, QString::number(gift.medalLevel), "#" + QString::number(gift.medalColor, 16));
     }
     else if (cmd.contains("INTERACT_WORD"))
     {
@@ -266,10 +281,15 @@ void Bilibili::parse(QJsonObject &jsonObj)
             entryData.value("fans_medal").toObject().value("medal_level").toInteger(),
             entryData.value("fans_medal").toObject().value("medal_color").toInteger()
         );
+        // if (display == Display::All        || display == Display::EntryOnly ||
+        //     display == Display::EntryDanmu || display == Display::EntryGift  )
         qDebug() << QDateTime::fromSecsSinceEpoch(entry.timestamp).toString("yy-MM-dd HH:mm:ss")
                  << entry.uname << "\t[" << entry.medalLevel << entry.medalName << "] come";
         entryList.push_back(entry);
         emit newEntry(entry);
+        emit newEntry(QDateTime::fromSecsSinceEpoch(entry.timestamp).toString("yy-MM-dd HH:mm:ss"), 
+                      entry.uname, entry.medalName, QString::number(entry.medalLevel),
+                      "#" + QString::number(entry.medalColor, 16));
     }
 }
 

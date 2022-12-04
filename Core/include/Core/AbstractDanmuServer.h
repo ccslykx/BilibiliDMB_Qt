@@ -17,6 +17,8 @@
 #include <QTimer>
 #include <QtWebSockets/QWebSocket>
 
+#include <QtQml/qqml.h>
+
 #include <Core/Danmu.h>
 
 namespace DanmuCore
@@ -32,7 +34,12 @@ public:
 
 signals:
     void newEntry(Entry);
+    // time, uname, medal_name, medal_level, medal_color
+    void newEntry(QString formatedTime, QString uname, QString medal_name, QString medal_level, QString medal_color);
     void newDanmu(Danmu);
+    // time, uname, content, contentColor, medal_name, medal_level, medal_color
+    void newDanmu(QString formatedTime, QString uname, QString content, QString contentColor,
+                  QString medalName, QString medalLevel, QString medalColor);
     void newGift(Gift);
 
 public slots:

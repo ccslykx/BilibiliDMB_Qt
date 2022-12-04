@@ -11,10 +11,46 @@ Window {
     visible: true
     title: qsTr("BilibiliDMB")
 
-    property int zoom: 1
+    property int zoom: 3
     property int themeRadius: 8
-    property string themeColor: "deeppink"
+    property string themeColor: "#FC88A9" // B站粉
 
+    property var danmuView: Qt.createComponent("DanmuView.qml")
+
+    signal connect(string roomid)
+    signal disconnect()
+
+    // 创建新弹幕
+    function createDanmu(time, usr, content, danmu_color, 
+                         medal_name, medal_level, medal_color, size = 20) {                
+        danmuView.createObject(danmuLayout, 
+        {
+            danmuTime: time,
+            danmuUser: usr,
+            danmuContent: content, 
+            danmuColor: danmu_color,
+            medalName: medal_name,
+            medalLevel: medal_level,
+            medalColor: medal_color,
+            fontSize: size
+        })
+    }
+
+    Connections {
+        target: Bilibili
+        // 礼物被视作特殊的“弹幕”出现，共用一个信号
+        onNewDanmu: (time, usr, content, danmu_color, medal_name, medal_level, medal_color) => {
+            createDanmu(time, usr, content, danmu_color, medal_name, medal_level, medal_color, 20 * zoom)
+            danmuScroll.ScrollBar.vertical.position = 1
+        }
+        onNewEntry: (time, usr, medal_name, medal_level, medal_color) => {
+            createDanmu(time, usr, "进入直播间", themeColor, medal_name, medal_level, medal_color, 20 * zoom)
+            danmuScroll.ScrollBar.vertical.position = 1
+        }
+    }
+
+
+    // 直播间信息行
     RowLayout {
         id: roomidRow
         anchors.horizontalCenter: parent.horizontalCenter
@@ -54,7 +90,7 @@ Window {
                 font.pixelSize: parent.height * 0.5
             }
         }
-
+        // ”连接“按钮
         Rectangle {
             id: connectButtonRect
             width: height * 2
@@ -80,32 +116,23 @@ Window {
                 onClicked: {
                     if (connectButtonText.text == "连接") {
                         console.log("正在连接" + roomid.text + "...")
+                        mainWindow.connect(roomid.text)
+                        createDanmu("", "系统提示", "连接成功", themeColor, "系统", "0", themeColor, 20 * zoom)
                         connectButtonText.text = "断开"
                     } else {
+                        mainWindow.disconnect()
                         console.log("连接已断开")
+                        createDanmu("", "系统提示", "断开连接", themeColor, "系统", "0", themeColor, 20 * zoom)
                         connectButtonText.text = "连接"
                     }
-                    // 创建新弹幕
-                    var danmuView = Qt.createComponent("DanmuView.qml")
-                    danmuView.createObject(danmuLayout, 
-                    {
-                        danmuTime: "2022-2-22",
-                        danmuUser: "Test",
-                        danmuContent: "我是一条动态弹幕",
-                        danmuColor: "#1fd2ef",
-                        medalName: "粉丝牌",
-                        medalLevel: "20",
-                        medalColor: "#ba214d",
-                        fontSize: 20
-                    })
                 }
             }
         }
     }
 
-    
-
+    // 弹幕显示区
     ScrollView {
+        id: danmuScroll
         x: spacing
         y: roomidRow.y + roomidRow.height + spacing
         width: parent.width - spacing * 2
@@ -115,28 +142,7 @@ Window {
         ColumnLayout {
             id: danmuLayout
             anchors.fill: parent
-            DanmuView {
-                danmuTime: "2022-2-22"
-                danmuUser: "Test"
-                danmuContent: "我是一条弹幕"
-                danmuColor: "#FF0000"
-                medalName: "粉丝牌"
-                medalLevel: "20"
-                medalColor: "#ab31dd"
-                fontSize: 30
-            }
-            DanmuView {
-                danmuTime: "2022-2-22"
-                danmuUser: "Test"
-                danmuContent: "我是一条弹幕"
-                danmuColor: "#00FF00"
-                medalName: "粉丝"
-                medalLevel: "20"
-                medalColor: "#AABBCC"
-                fontSize: 30
-            }
         }
-        
     }
 }
 

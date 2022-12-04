@@ -21,6 +21,7 @@ namespace DanmuCore
 class Entry : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
 
 public:
     Entry(quint64 timestamp, quint64 uid, QString uname,
@@ -72,7 +73,9 @@ public:
 
 class Danmu : public Entry
 {
-    Q_OBJECT;
+    Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(QString content READ Content)
 
 public:
     Danmu(QString content, qint32 contentColor,
@@ -104,6 +107,8 @@ public:
     }
     ~Danmu() {};
 
+    QString Content() { return content; };
+
 
 public:
     QString content;
@@ -113,6 +118,7 @@ public:
 class Gift : public Danmu
 {
     Q_OBJECT
+    QML_ELEMENT
 
 public:
     Gift(bool isFirst, int comboTime, int giftID, int price, int number,
