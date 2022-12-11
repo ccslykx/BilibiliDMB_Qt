@@ -5,26 +5,10 @@ Rectangle {
     id: danmuView
     height: fontSize * 10 / 9 // 使用 ColumnLayout ，需要 height
     
-    property int fontSize
-
-    property string danmuTime
-    property string danmuUser
-    property string danmuContent
-    property string danmuColor
-
-    property string medalName
-    property string medalLevel
-    property string medalColor
-    
     RowLayout {
         spacing: fontSize * 0.5
 
-        MedalView { 
-            fontSize: danmuView.fontSize * 0.8
-            name: medalName
-            level: medalLevel
-            color: medalColor
-        }
+        // 弹幕
         Text {
             id: danmuTimeText
             horizontalAlignment: Text.AlignHCenter

@@ -11,9 +11,10 @@ Window {
     visible: true
     title: qsTr("BilibiliDMB")
 
-    property int zoom: 3
+    property int zoom: 1
     property int themeRadius: 8
     property string themeColor: "#FC88A9" // B站粉
+    property int capacity: 100
 
     property var danmuView: Qt.createComponent("DanmuView.qml")
 
@@ -22,9 +23,11 @@ Window {
 
     // 创建新弹幕
     function createDanmu(time, usr, content, danmu_color, 
-                         medal_name, medal_level, medal_color, size = 20) {                
-        danmuView.createObject(danmuLayout, 
-        {
+                         medal_name, medal_level, medal_color, size = 20) {   
+        if (danmuModel.count >= 5) {
+            danmuModel.remove(0, 1)
+        }
+        danmuModel.append({
             danmuTime: time,
             danmuUser: usr,
             danmuContent: content, 
@@ -139,9 +142,22 @@ Window {
         height: parent.height - y - spacing
         spacing: 10 * zoom
 
-        ColumnLayout {
-            id: danmuLayout
+        ListView {
+            id: danmuList
             anchors.fill: parent
+            spacing: parent.spacing
+            model: ListModel {
+                id: danmuModel
+                dynamicRoles: true
+            }
+            delegate: Loader {
+                source: {
+                    switch(medalLevel) {
+                        case "0": return "DanmuView.qml";
+                        default: return "MedalDanmuView.qml";
+                    }
+                }
+            }
         }
     }
 }
