@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>DanmuView.qml</file>
+        <file>main.qml</file>
+        <file>MedalDanmuView.qml</file>
+    </qresource>
+</RCC>

@@ -24,7 +24,7 @@ Window {
     // 创建新弹幕
     function createDanmu(time, usr, content, danmu_color, 
                          medal_name, medal_level, medal_color, size = 20) {   
-        if (danmuModel.count >= 5) {
+        if (danmuModel.count >= capacity) {
             danmuModel.remove(0, 1)
         }
         danmuModel.append({
@@ -42,11 +42,11 @@ Window {
     Connections {
         target: Bilibili
         // 礼物被视作特殊的“弹幕”出现，共用一个信号
-        onNewDanmu: (time, usr, content, danmu_color, medal_name, medal_level, medal_color) => {
+        function onNewDanmu(time, usr, content, danmu_color, medal_name, medal_level, medal_color) {
             createDanmu(time, usr, content, danmu_color, medal_name, medal_level, medal_color, 20 * zoom)
             danmuScroll.ScrollBar.vertical.position = 1
         }
-        onNewEntry: (time, usr, medal_name, medal_level, medal_color) => {
+        function onNewEntry(time, usr, medal_name, medal_level, medal_color) {
             createDanmu(time, usr, "进入直播间", themeColor, medal_name, medal_level, medal_color, 20 * zoom)
             danmuScroll.ScrollBar.vertical.position = 1
         }

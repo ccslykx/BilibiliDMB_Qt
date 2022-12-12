@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     QQmlContext *rootContext = engine.rootContext();
     rootContext->setContextProperty("Bilibili", &bili);
 
-    const QUrl url(u"qrc:/DMB_GUI_test/home/ccslykx/Projects/BilibiliDMB_QML/GUI/qml/main.qml"_qs);
+    const QUrl url(u"qrc:main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
